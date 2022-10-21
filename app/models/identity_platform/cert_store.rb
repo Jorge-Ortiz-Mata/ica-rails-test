@@ -1,9 +1,5 @@
-# frozen_string_literal: true
-
-require 'net/http'
-
 module IdentityPlatform
-  #= IdentityPlatform::CertStore
+  #= DecodeIdentityToken::CertStore
   #
   # This class is used by the DecodeIdentityToken service to retrieve and store
   # the certificates used to properly decode tokens issued by Google Cloud
@@ -11,10 +7,17 @@ module IdentityPlatform
   class CertStore
     extend MonitorMixin
 
-    CERTS_URI = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+    CERTS_PATH = '/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
     CERTS_EXPIRY = 3600
 
     mattr_reader :certs_last_refresh
+
+    def self.client
+      @client ||= Faraday.new('https://www.googleapis.com') do |f|
+        f.response :json # decode response bodies as JSON
+        f.adapter :net_http
+      end
+    end
 
     def self.certs_cache_expired?
       return true unless certs_last_refresh
@@ -28,20 +31,17 @@ module IdentityPlatform
     end
 
     def self.fetch_certs
-      certs_uri = URI(CERTS_URI)
-      get = Net::HTTP::Get.new certs_uri.request_uri
-      http = Net::HTTP.new(certs_uri.host, certs_uri.port)
-      http.use_ssl = true
-      res = http.request(get)
-      return res if res.is_a?(Net::HTTPSuccess)
+      client.get(CERTS_PATH).tap do |response|
+        raise Error, 'Failed to fetch certs' unless response.success?
+      end
     end
 
     def self.refresh_certs
       synchronize do
         return unless (res = fetch_certs)
 
-        new_certs = JSON.parse(res.body).transform_values do |cert|
-          OpenSSL::X509::Certificate.new(cert)
+        new_certs = res.body.transform_values do |cert_string|
+          OpenSSL::X509::Certificate.new(cert_string)
         end
 
         (@@certs ||= {}).merge! new_certs

@@ -59,6 +59,10 @@ gem 'on_container', '~> 0.0.17'
 # To decode the tokens
 gem 'jwt', '~> 2.5'
 
+# HTTP/REST API client library.
+# NOTE: google-cloud-secret-manager uses faraday 1.x instead of 2.x
+gem 'faraday', '~> 1.10'
+
 # An authentication library compatible with all Rack-based frameworks
 gem 'warden', '~> 1.2', '>= 1.2.9'
 

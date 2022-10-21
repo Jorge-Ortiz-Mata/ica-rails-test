@@ -8,4 +8,7 @@ Rails.application.routes.draw do
 
   get 'sign-in', to: 'session#new', as: :new_session
   resource :session, only: %i[create destroy], controller: :session
+
+  # get 'sign-in', to: 'sessions#new'
+  # resource :session, only: %i[create destroy]
 end

@@ -14,13 +14,6 @@ const signInOptions = [
 export default class extends Controller {
   static targets = [ "sessionForm", "token" ]
 
-  initialize() {
-    firebase.initializeApp({
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN"
-    })
-  }
-
   connect() {
     const firebaseAuth = firebase.auth()
     const firebaseAuthUI = new firebaseui.auth.AuthUI(firebaseAuth)

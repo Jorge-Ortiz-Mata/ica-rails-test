@@ -1,8 +1,3 @@
-# frozen_string_literal: true
-
-#= SessionController
-#
-# Handles the user session actions.
 class SessionController < ApplicationController
   def new; end
 
@@ -18,7 +13,7 @@ class SessionController < ApplicationController
 
   def destroy
     sign_out_user
-    redirect_to new_session_path
+    redirect_to sign_in_path
   end
 
   private
@@ -29,13 +24,13 @@ class SessionController < ApplicationController
 
   def sign_in_token_user(token, scope: :default)
     user = User.from_identity_token token
-    warden.set_user(user, scope:)
+    warden.set_user(user, scope: scope)
   end
 
   def sign_out_user(scope: nil)
     if scope
       warden.logout(scope)
-      warden.clear_strategies_cache!(scope:)
+      warden.clear_strategies_cache!(scope: scope)
     else
       warden.logout
       warden.clear_strategies_cache!
